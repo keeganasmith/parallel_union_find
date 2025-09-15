@@ -19,7 +19,6 @@ class Union_Find{
     public:
     Union_Find(size_t num_nodes, ygm::comm& world);
     bool merge(size_t node_1, size_t node_2);
-    size_t find(size_t node_1);
     ygm::container::array<size_t> data();
     size_t num_disjoint_sets();
     ~Union_Find();
