@@ -8,6 +8,7 @@ void Union_Find::initialize_node_array(){
 }
 Union_Find::Union_Find(size_t num_nodes, ygm::comm& world): num_nodes{num_nodes}, world{&world}{
     this->initialize_node_array();
+    this->this_ygm_ptr = ygm::ygm_ptr<Union_Find>(this);
 }
 bool Union_Find::merge(size_t node_1, size_t node_2){ //true for merged, false for already in the same set
     size_t current_worst_root = std::max(node_1, node_2);
@@ -15,22 +16,21 @@ bool Union_Find::merge(size_t node_1, size_t node_2){ //true for merged, false f
     if(current_worst_root == best_root){
         return false;
     }
-    //go to parent of worst root: 
+    
     bool merged = false;
-    this->parent_array->async_visit(current_worst_root, [&merged](const size_t index, size_t& value, size_t best_root){
-        new_current_worst_root = std::max(current_worst_root, value);
+    ygm::ygm_ptr<bool> merged_ptr(&merged); 
+    this->parent_array->async_visit(current_worst_root, [](const size_t& current_worst_root, size_t& value, const size_t best_root, const ygm::ygm_ptr<bool>& merged_ptr, const ygm::ygm_ptr<Union_Find>& this_ygm_ptr){
+        size_t new_current_worst_root = std::max(current_worst_root, value);
         if(current_worst_root == new_current_worst_root){ //reached a root
             //we need to merge into best root
             value = best_root;
-            merged = true;
+            *merged_ptr = true;
         }
         else{
-            merged = merge(new_current_worst_root, best_root);
+            *merged_ptr = false;
         }
-    }, best_root);
-
-    return merged;
-    
+    }, best_root, merged_ptr, this_ygm_ptr);
+    return *merged_ptr;
 }
 
 ygm::container::array<size_t> Union_Find::data(){

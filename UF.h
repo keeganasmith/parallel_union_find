@@ -14,6 +14,7 @@ class Union_Find{
     size_t num_nodes;
     ygm::container::array<size_t>* parent_array;
     ygm::comm* world;
+    ygm::ygm_ptr<Union_Find> this_ygm_ptr;
     void initialize_node_array();
     size_t retrieve_value(size_t index);
     public:

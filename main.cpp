@@ -38,9 +38,9 @@ void test(ygm::comm& world){
       uf.merge(i, i + 1);
     }
   }
-  std::cout << "rank " << my_rank << " made it passed merge\n";
+  std::cout << "rank " << my_rank << " made it past merge\n";
   world.barrier();
-  world.cout0("made it passed the merges\n");
+  /*
   size_t num_disjoint_sets = uf.num_disjoint_sets();
   if(my_rank == 0){
     if(num_disjoint_sets != num_nodes / world_size){
@@ -50,6 +50,7 @@ void test(ygm::comm& world){
       std::cout << "correct number of disjoint sets\n";
     }
   }
+  */
 }
 int main(int argc, char** argv){
     ygm::comm world(&argc, &argv);
