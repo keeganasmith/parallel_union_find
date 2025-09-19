@@ -1,4 +1,5 @@
 #include "UF.h"
+using std::string, std::vector, std::pair;
 void verify_initialization(Union_Find& uf, size_t size, ygm::comm& world){
   bool correct = true;
   uf.data().for_all([&correct](const size_t& index, const size_t& value){
@@ -17,15 +18,15 @@ void verify_initialization(Union_Find& uf, size_t size, ygm::comm& world){
   }
 }
 
-void read_file(string& csv_file, ygm::comm& world, ygm::container::bag<pair<size_t, size_t>>& edges){
+void read_csv_file(const char*  csv_file, ygm::comm& world, ygm::container::bag<pair<size_t, size_t>>& edges){
   vector<string> filenames(1, csv_file);
   ygm::io::csv_parser parser(world, filenames);
-  ygm::ygm_ptr edges_ptr = edges.get_ygm_ptr()
-  parser.for_all([](ygm::io::detail::csv_line line, ygm::ygm_ptr& edges_ptr){
+  ygm::ygm_ptr edges_ptr = edges.get_ygm_ptr();
+  parser.for_all([&edges_ptr](ygm::io::detail::csv_line line){
     long long vertex_one = line[0].as_integer();
     long long vertex_two = line[1].as_integer();
-    edges_ptr->.async_insert(pair<long long, long long>(vertex_one, vertex_two)); 
-  }, edges_ptr);
+    edges_ptr->async_insert(pair<long long, long long>(vertex_one, vertex_two)); 
+  });
   world.barrier();
 }
 
@@ -36,8 +37,10 @@ void test(ygm::comm& world){
   world.barrier();
   int my_rank = ygm::wrank();
   int world_size = ygm::wsize();
-  ygm::container::bag<pair<size_t, size_t>> edges;
-  read_file("./web-google.csv", world, edges);  
+  ygm::container::bag<pair<size_t, size_t>> edges(world);
+  read_csv_file("./web-google.csv", world, edges);  
+  world.barrier();
+  
 }
 int main(int argc, char** argv){
     ygm::comm world(&argc, &argv);
