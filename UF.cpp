@@ -1,48 +1,37 @@
-#include "UF.h"
+#include "uf.h"
+using std::vector;
+Union_Find::Union_Find(){}
+Union_Find::Union_Find(size_t size){
+	nodes = vector<Node>(size);
+  for(size_t i = 0; i < nodes.size(); i++){
+    nodes.at(i).parent = i;
+  }
+}
+bool Union_Find::merge(size_t index_one, size_t index_two){
+	size_t parent_one = find(index_one);
+  size_t parent_two = find(index_two);
+  if(parent_one == parent_two){
+    return false;
+  }
+  //parent one is larger tree, so merge parent two into parent one
+  if(nodes[parent_one].rank > nodes[parent_two].rank){
+    nodes[parent_two].parent = parent_one;
+  }
+  else{  
+    nodes[parent_one].parent = parent_two;
+    if(nodes[parent_one].rank == nodes[parent_two].rank){
+      nodes[parent_two].rank++;
+    }
+  }
+  return true;
 
-void Union_Find::initialize_node_array(){
-    this->parent_array = new ygm::container::array<size_t>(*this->world, num_nodes);
-    this->parent_array->for_all([](const size_t& index, size_t& value){
-        value = index;
-    });
 }
-Union_Find::Union_Find(size_t num_nodes, ygm::comm& world): num_nodes{num_nodes}, world{&world}{
-    this->initialize_node_array();
-    this->this_ygm_ptr = ygm::ygm_ptr<Union_Find>(this);
-}
-void Union_Find::merge(size_t node_1, size_t node_2){ //true for merged, false for already in the same set
-    size_t current_worst_root = std::max(node_1, node_2);
-    size_t best_root = std::min(node_1, node_2);
-    if(current_worst_root == best_root){ //share a common ancestor
-        return;
-    }
-    
-    this->parent_array->async_visit(current_worst_root, [](const size_t& current_worst_root, size_t& value, const size_t best_root, const ygm::ygm_ptr<Union_Find>& this_ygm_ptr){
-        size_t new_current_worst_root = std::max(current_worst_root, value);
-        if(current_worst_root == new_current_worst_root){ //reached a root
-            //we need to merge into best root
-            value = best_root;
-        }
-        else{
-            this_ygm_ptr->merge(new_current_worst_root, best_root);
-        } 
-    }, best_root, this_ygm_ptr);
-}
-
-ygm::container::array<size_t> Union_Find::data(){
-  return *(this->parent_array);
-}
-size_t Union_Find::num_disjoint_sets(){
-  size_t num_sets = 0;
-  this->parent_array->for_all([&num_sets](const size_t& index, size_t& value){
-    if(index == value){
-        num_sets++;
-    }
-  });
-  return num_sets;
-}
-Union_Find::~Union_Find(){
-    if(this->parent_array != nullptr){
-        delete this->parent_array;
-    }
+size_t Union_Find::find(size_t index){
+  size_t parent = nodes.at(index).parent;
+  if(nodes.at(parent).parent != parent){
+    size_t real_parent = find(parent);
+    nodes[index].parent = real_parent;
+    return real_parent;
+  }  
+  return parent;
 }
