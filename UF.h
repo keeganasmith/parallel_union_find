@@ -22,6 +22,7 @@ class Union_Find{
     void merge(size_t node_1, size_t node_2);
     ygm::container::array<size_t> data();
     size_t num_disjoint_sets();
+    ygm::ygm_ptr<Union_Find> get_ygm_ptr();
     ~Union_Find();
 };
 #endif

@@ -39,10 +39,14 @@ size_t Union_Find::num_disjoint_sets(){
         num_sets++;
     }
   });
+  num_sets = ygm::sum(num_sets, *this->world);
   return num_sets;
 }
 Union_Find::~Union_Find(){
     if(this->parent_array != nullptr){
         delete this->parent_array;
     }
+}
+ygm::ygm_ptr<Union_Find> Union_Find::get_ygm_ptr(){
+  return this->this_ygm_ptr;
 }
